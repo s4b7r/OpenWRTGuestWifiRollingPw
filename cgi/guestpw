@@ -1,21 +1,58 @@
 #!/bin/ash
-GUEST_WIFI_SSID="ssid"
-THRESHOLD="4 am"
+GUEST_WIFI_SSID="SSID HERE"
+QR_PATH="/tmp/current_guest_wifi_pw.svg"
 
-# assumes guest wifi has id 2
-if [ `uci get wireless.@wifi-iface[2].ssid` = $GUEST_WIFI_SSID ]; then
-  PWD=`uci get wireless.@wifi-iface[2].key`
+# Count iface sections safely and loop only through existing ones
+IFACE_COUNT="$(uci -q show wireless | grep -c '=wifi-iface')"
+[ -z "$IFACE_COUNT" ] && IFACE_COUNT=0
+
+i=0
+FOUND=0
+while [ "$i" -lt "$IFACE_COUNT" ]; do
+  SSID_VAL="$(uci -q get wireless.@wifi-iface[$i].ssid 2>/dev/null || echo '')"
+  if [ "x$SSID_VAL" = "x$GUEST_WIFI_SSID" ]; then
+    FOUND=1
+    PWD="$(uci -q get wireless.@wifi-iface[$i].key)"
+  fi
+  i=$((i+1))
+done
+
+if [ "$FOUND" -eq 0 ]; then
+  echo "No wifi-iface with SSID '$GUEST_WIFI_SSID' found. Aborting." >&2
+  exit 1
+fi
+
+
   echo "Content-Type:text/html;charset=utf-8"
   echo ""
   echo "<!DOCTYPE html>"
   echo "<html>"
-  echo "<body>"
-  echo "<h1>$GUEST_WIFI_SSID Wifi Password Page</h1>"
-  echo "<div>The current password for wifi "$GUEST_WIFI_SSID" is <b>$PWD</b></div>"
-  echo "<div>Password exipres at $THRESHOLD everyday.</div>"
-  echo "<h2>Login Android</h2>"
-  echo "<div>Scan barcode below on Android to login.</div>"
-  echo "<span><img src='/general-cgi-resources/current_guest_wifi_pw_andorid_qr.svg'></span>"
+
+echo "<head>"
+echo "<title>Guest Password</title>"
+echo '<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">'
+echo '<meta http-equiv="refresh" content="360" />'
+echo "</head>"
+
+  echo "<body bgcolor="#000">"
+echo "<div style='text-align:center;color:#fff;font-family:UnitRoundedOT,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:28px;font-weight:500;'>"
+echo "<p>SSID: <b>$GUEST_WIFI_SSID</b></p>"
+echo "<p>PASSWORD: <b>$PWD</b></p>"
+  
+echo "<div>"
+
+
+  # Inline the SVG file directly into HTML
+  if [ -f "$QR_PATH" ]; then
+    cat "$QR_PATH"
+  else
+    echo "<p>(QR code not generated)</p>"
+  fi
+
+
+  echo "</div>"
+  echo "</div>"
   echo "</body>"
   echo "</html>"
-fi
+
+

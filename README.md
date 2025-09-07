@@ -45,3 +45,11 @@ Or (approx.) every third day 3:30 am
 ## Also
 
 Finally, modify the SSID of your guest wifi and salt in the ChangeGuestWifiPW.sh script and access your guest PSK page by http(s)://xxx.xxx.xxx.xxx/cgi-bin/guestpw
+
+## Ack
+
+This is based on info from
+
+- https://github.com/mm28ajos/OpenWRTGuestWifiPasswordChanger
+- https://nwildner.com/posts/2022-02-24-openwrt-guest/
+- https://blog.tldnr.org/2019/11/11/Guest-Wifi/

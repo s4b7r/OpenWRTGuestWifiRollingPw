@@ -30,6 +30,8 @@ chmod +x /www/cgi-bin/guestpw
 
 ## Add Cronjob
 
+Hint: You can also do this via OpenWRT LuCI web config interface under System -> Scheduled Tasks.
+
 For example, add a cronjob changing the PSK every night at 4 a.m.
 
 ```
